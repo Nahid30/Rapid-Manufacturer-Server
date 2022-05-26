@@ -78,6 +78,15 @@ async function run() {
             res.send({ result });
         })
 
+
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({email: email});
+            const isAdmin = user.role === 'admin';
+            res.send({admin: isAdmin});
+        })
+
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -161,14 +170,14 @@ async function run() {
                 currency: 'usd',
                 payment_method_types: ['card']
             });
-            res.send({clientSecret: paymentIntent.client_secret})
+            res.send({ clientSecret: paymentIntent.client_secret })
         })
 
 
-        app.patch('/item/:id', async (req, res)=>{
+        app.patch('/item/:id', async (req, res) => {
             const id = req.params.id;
             const payment = req.body;
-            const filter = {_id: ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
             const updatedDoc = {
                 $set: {
                     paid: true,
@@ -181,7 +190,7 @@ async function run() {
             res.send(updatedDoc);
         })
 
-      
+
         // app.get('/purchase/:id', async (req, res) => {
         //     const id = req.params.id;
         //     const query = { _id: ObjectId(id) };
