@@ -5,7 +5,7 @@ require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Middleware
 app.use(cors());
@@ -13,6 +13,7 @@ app.use(express.json());
 
 // rapid_admin
 // u9xfAV1oYBksYAhO
+
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fl8bx.mongodb.net/?retryWrites=true&w=majority`;
@@ -43,6 +44,7 @@ async function run() {
         const purchaseCollection = client.db('rapid_manufacturer').collection('purchases');
         const reviewsCollection = client.db('rapid_manufacturer').collection('reviews');
         const userCollection = client.db('rapid_manufacturer').collection('users');
+        const paymentCollection = client.db('rapid_manufacturer').collection('payments');
 
         // To load all items to the client site 
         app.get('/items', async (req, res) => {
@@ -93,7 +95,6 @@ async function run() {
 
         app.get('/item/:id', async (req, res) => {
             const query = {};
-
             const users = await itemsCollection.findOne(query);
             res.send(users);
         })
@@ -105,12 +106,12 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/item/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const items = await itemsCollection.findOne(query);
-            res.send(items);
-        })
+        // app.get('/item/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const items = await itemsCollection.findOne(query);
+        //     res.send(items);
+        // })
 
 
         app.get('/purchase/:email', async (req, res) => {
@@ -150,9 +151,37 @@ async function run() {
 
 
 
+        app.post('/create-payment-intent', async (req, res) => {
+            const service = req.body;
+            const price = service.price;
+            const newPrice = price || 1
+            const amount = parseInt(newPrice * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({clientSecret: paymentIntent.client_secret})
+        })
 
 
+        app.patch('/item/:id', async (req, res)=>{
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = {_id: ObjectId(id)};
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
 
+            const result = await paymentCollection.insertOne(payment);
+            const updatedItem = await itemsCollection.updateOne(filter, updatedDoc);
+            res.send(updatedDoc);
+        })
+
+      
         // app.get('/purchase/:id', async (req, res) => {
         //     const id = req.params.id;
         //     const query = { _id: ObjectId(id) };
