@@ -54,6 +54,13 @@ async function run() {
             res.send(items);
         })
 
+        // app.delete('/item/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const item = await itemsCollection.deleteOne(query);
+        //     res.send(item);
+        // })
+
         // using post API to purchase a particular item 
         app.post('/purchase', async (req, res) => {
             const purchase = req.body;
@@ -62,8 +69,44 @@ async function run() {
 
         })
 
+        app.get('/purchases', async (req, res) => {
+            const query = {};
+            const result = await purchaseCollection.find(query).toArray();
+            res.send(result);
+
+        })
+
+
+        app.patch('/purchase/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    shipped: true
+                }
+            }
+            const updatedPurchase = await purchaseCollection.updateOne(filter, updatedDoc);
+            res.send(updatedPurchase);
+        })
+
+
         app.get('/user', async (req, res) => {
             const users = await userCollection.find().toArray();
+            res.send(users);
+        })
+
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            res.send(user);
+        })
+
+
+
+        app.delete('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const users = await userCollection.deleteOne(query);
             res.send(users);
         })
 
@@ -78,12 +121,14 @@ async function run() {
             res.send({ result });
         })
 
+      
+
 
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
-            const user = await userCollection.findOne({email: email});
+            const user = await userCollection.findOne({ email: email });
             const isAdmin = user.role === 'admin';
-            res.send({admin: isAdmin});
+            res.send({ admin: isAdmin });
         })
 
 
@@ -101,26 +146,27 @@ async function run() {
         })
 
 
-
-        app.get('/item/:id', async (req, res) => {
-            const query = {};
-            const users = await itemsCollection.findOne(query);
-            res.send(users);
+        app.patch('/updateUser/:email', async (req, res) => {
+            const email = req.params.email;
+            const userData = req.body;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: userData,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
         })
+
+
 
         app.get('/item/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const result = await itemsCollection.findOne(query);
-            res.send(result);
+            const users = await itemsCollection.findOne(query);
+            res.send(users);
         })
 
-        // app.get('/item/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) };
-        //     const items = await itemsCollection.findOne(query);
-        //     res.send(items);
-        // })
+
 
 
         app.get('/purchase/:email', async (req, res) => {
@@ -164,7 +210,7 @@ async function run() {
             const service = req.body;
             const price = service.price;
             const newPrice = price || 1
-            const amount = parseInt(newPrice * 100);
+            const amount = parseInt(newPrice) * 100;
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
                 currency: 'usd',
@@ -174,7 +220,8 @@ async function run() {
         })
 
 
-        app.patch('/item/:id', async (req, res) => {
+
+        app.patch('/payment/:id', async (req, res) => {
             const id = req.params.id;
             const payment = req.body;
             const filter = { _id: ObjectId(id) };
@@ -184,34 +231,64 @@ async function run() {
                     transactionId: payment.transactionId
                 }
             }
-
             const result = await paymentCollection.insertOne(payment);
-            const updatedItem = await itemsCollection.updateOne(filter, updatedDoc);
-            res.send(updatedDoc);
+            const updatedPayment = await purchaseCollection.updateOne(filter, updatedDoc);
+            res.send(updatedPayment);
         })
 
 
-        // app.get('/purchase/:id', async (req, res) => {
+        // app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
+        //     const service = req.body;
+        //     const price = service.price;
+        //     const amount = price*100;
+        //     const paymentIntent = await stripe.paymentIntents.create({
+        //       amount : amount,
+        //       currency: 'usd',
+        //       payment_method_types:['card']
+        //     });
+        //     res.send({clientSecret: paymentIntent.client_secret})
+        //   });
+
+
+        // app.patch('/item/:id', async (req, res) => {
         //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) };
-        //     const purchase = await purchaseCollection.findOne(query);
-        //     res.send(purchase);
+        //     const payment = req.body;
+        //     const filter = { _id: ObjectId(id) };
+        //     const updatedDoc = {
+        //         $set: {
+        //             paid: true,
+        //             transactionId: payment.transactionId
+        //         }
+        //     }
+
+        //     const result = await paymentCollection.insertOne(payment);
+        //     const updatedItem = await itemsCollection.updateOne(filter, updatedDoc);
+        //     res.send(updatedDoc);
         // })
 
-        
+
+        app.get('/buy/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = { _id: ObjectId(id) };
+            const result = await purchaseCollection.findOne(query);
+            res.send(result);
+        })
+
+
         app.post('/product', async (req, res) => {
             const product = req.body;
-            const result = await productCollection.insertOne(product);
+            const result = await itemsCollection.insertOne(product);
             res.send(result);
 
         })
 
-        app.get('/product', async (req, res) => {
-            const query = {};
-            const cursor = productCollection.find(query);
-            const getResult = await cursor.toArray();
-            res.send(getResult);
-        })
+        // app.get('/product', async (req, res) => {
+        //     const query = {};
+        //     const cursor = productCollection.find(query);
+        //     const getResult = await cursor.toArray();
+        //     res.send(getResult);
+        // })
 
 
         app.delete('/item/:id', async (req, res) => {
