@@ -11,8 +11,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 app.use(cors());
 app.use(express.json());
 
-// rapid_admin
-// u9xfAV1oYBksYAhO
+
 
 
 
