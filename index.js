@@ -45,6 +45,7 @@ async function run() {
         const reviewsCollection = client.db('rapid_manufacturer').collection('reviews');
         const userCollection = client.db('rapid_manufacturer').collection('users');
         const paymentCollection = client.db('rapid_manufacturer').collection('payments');
+        const productCollection = client.db('rapid_manufacturer').collection('products');
 
         // To load all items to the client site 
         app.get('/items', async (req, res) => {
@@ -197,6 +198,29 @@ async function run() {
         //     const purchase = await purchaseCollection.findOne(query);
         //     res.send(purchase);
         // })
+
+        
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
+
+        })
+
+        app.get('/product', async (req, res) => {
+            const query = {};
+            const cursor = productCollection.find(query);
+            const getResult = await cursor.toArray();
+            res.send(getResult);
+        })
+
+
+        app.delete('/item/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const deleteResult = await itemsCollection.deleteOne(query);
+            res.send(deleteResult);
+        })
 
 
     }
