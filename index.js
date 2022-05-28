@@ -54,12 +54,6 @@ async function run() {
             res.send(items);
         })
 
-        // app.delete('/item/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) };
-        //     const item = await itemsCollection.deleteOne(query);
-        //     res.send(item);
-        // })
 
         // using post API to purchase a particular item 
         app.post('/purchase', async (req, res) => {
@@ -237,35 +231,6 @@ async function run() {
         })
 
 
-        // app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
-        //     const service = req.body;
-        //     const price = service.price;
-        //     const amount = price*100;
-        //     const paymentIntent = await stripe.paymentIntents.create({
-        //       amount : amount,
-        //       currency: 'usd',
-        //       payment_method_types:['card']
-        //     });
-        //     res.send({clientSecret: paymentIntent.client_secret})
-        //   });
-
-
-        // app.patch('/item/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const payment = req.body;
-        //     const filter = { _id: ObjectId(id) };
-        //     const updatedDoc = {
-        //         $set: {
-        //             paid: true,
-        //             transactionId: payment.transactionId
-        //         }
-        //     }
-
-        //     const result = await paymentCollection.insertOne(payment);
-        //     const updatedItem = await itemsCollection.updateOne(filter, updatedDoc);
-        //     res.send(updatedDoc);
-        // })
-
 
         app.get('/buy/:id', async (req, res) => {
             const id = req.params.id;
@@ -282,13 +247,6 @@ async function run() {
             res.send(result);
 
         })
-
-        // app.get('/product', async (req, res) => {
-        //     const query = {};
-        //     const cursor = productCollection.find(query);
-        //     const getResult = await cursor.toArray();
-        //     res.send(getResult);
-        // })
 
 
         app.delete('/item/:id', async (req, res) => {
