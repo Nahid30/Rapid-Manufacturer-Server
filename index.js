@@ -199,7 +199,7 @@ async function run() {
 
 
 
-
+        // for payment 
         app.post('/create-payment-intent', async (req, res) => {
             const service = req.body;
             const price = service.price;
